@@ -13,6 +13,8 @@ from research_mcp.backends.linkedin_free import get_profile as linkedin_profile
 from research_mcp.backends.odysee_free import get_video as odysee_video
 from research_mcp.backends.pinterest_free import get_pin
 from research_mcp.backends.rumble_free import get_video as rumble_video
+from research_mcp.backends.tiktok_free import get_profile as tiktok_profile
+from research_mcp.backends.tiktok_free import get_video as tiktok_video
 from research_mcp.util.schema import normalize
 
 
@@ -22,10 +24,16 @@ def route(tool_name: str, **kwargs) -> dict | None:
         handle = str(kwargs.get("handle") or "").lstrip("@")
         kind = "linkedin"
         kwargs = {**kwargs, "url": f"https://www.linkedin.com/in/{handle}"}
+    if tool_name == "get_profile" and str(kwargs.get("platform") or "").lower() == "tiktok":
+        kind = "tiktok"
+    if tool_name == "get_post" and "tiktok.com" in str(kwargs.get("url") or ""):
+        kind = "tiktok"
     if kind is None:
         return None
-    result = _call(kind, kwargs.get("url") or "")
+    result = _call(kind, kwargs.get("url") or "", str(kwargs.get("handle") or ""))
     useful = _useful(result)
+    if kind == "tiktok" and not useful and not _blocked():
+        return None
     if useful or _blocked() or not _paid_key():
         return _schema(result, kwargs.get("url") or "", kind)
     return None
@@ -44,10 +52,16 @@ def _kind(url: str, platform: str | None) -> str | None:
         return "rumble"
     if "odysee.com" in host or url.startswith("lbry://") or name == "odysee":
         return "odysee"
+    if "tiktok.com" in host or name == "tiktok":
+        return "tiktok"
     return None
 
 
-def _call(kind: str, url: str) -> dict:
+def _call(kind: str, url: str, handle: str) -> dict:
+    if kind == "tiktok":
+        if "/video/" in url or "/photo/" in url:
+            return tiktok_video(url)
+        return tiktok_profile(handle or url)
     if kind == "linkedin":
         return linkedin_profile(url)
     if kind == "pinterest":
@@ -61,7 +75,7 @@ def _useful(result: dict) -> bool:
     data = result.get("data") if isinstance(result, dict) else None
     if not isinstance(data, dict):
         return False
-    return any(data.get(key) for key in ("title", "name", "description", "image_url"))
+    return any(data.get(key) for key in ("title", "name", "description", "image_url", "play_count", "play_link", "follower_count", "username"))
 
 
 def _blocked() -> bool:
@@ -83,10 +97,17 @@ def _schema(result: dict, url: str, kind: str) -> dict:
             "display_name": data.get("name") or data.get("channel") or data.get("author"),
             "profile_url": data.get("profile_url"),
         },
-        "metrics": {"views": data.get("view_count"), "followers": data.get("followers")},
+        "metrics": {
+            "views": data.get("view_count") if data.get("view_count") is not None else data.get("play_count"),
+            "likes": data.get("like_count"),
+            "comments": data.get("comment_count"),
+            "shares": data.get("share_count"),
+            "followers": data.get("follower_count") if data.get("follower_count") is not None else data.get("followers"),
+        },
         "media": {
             "thumbnail_url": data.get("picture_url") or data.get("image_url"),
             "image_urls": [data["image_url"]] if data.get("image_url") else [],
+            "video_urls": [data["play_link"]] if data.get("play_link") else [],
         },
         "path_used": "free",
         "source_detail": result.get("source_name"),

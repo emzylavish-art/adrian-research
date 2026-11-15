@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import patch
 from urllib.error import HTTPError
 
-from research_mcp.backends import linkedin_free, odysee_free, pinterest_free, rumble_free
+from research_mcp.backends import linkedin_free, odysee_free, pinterest_free, rumble_free, youtube_free
 from research_mcp.router import route
 
 
@@ -70,8 +70,27 @@ class ExtraFreeTests(unittest.TestCase):
         self.assertEqual(out["errors"][0]["error"], "blocked")
         self.assertIsNone(out["data"]["view_count"])
 
-    def test_router_keeps_tiktok_on_the_existing_path(self):
-        self.assertIsNone(route("get_post", url="https://www.tiktok.com/@name/video/1"))
+    def test_youtube_counts_are_integers(self):
+        payload = {"likes": 3, "dislikes": 1}
+        with patch("research_mcp.backends.youtube_free.urllib.request.urlopen", return_value=_Response(200, json.dumps(payload), "https://returnyoutubedislikeapi.com/votes")):
+            out = youtube_free.get_counts("jNQXAC9IVRw")
+        self.assertEqual(out["data"]["likes"], 3)
+        self.assertEqual(out["data"]["dislikes"], 1)
+        self.assertEqual(out["credits_charged"], 0)
+
+    def test_missing_tiktok_scraper_keeps_existing_path(self):
+        empty = {"data": {}, "source_name": "omkarcloud-tiktok", "errors": [{"error": "request_failed"}], "path_used": "free", "credits_charged": 0}
+        with patch("research_mcp.router.tiktok_video", return_value=empty):
+            self.assertIsNone(route("get_post", url="https://www.tiktok.com/@name/video/1"))
+
+    def test_router_uses_verified_tiktok_counts(self):
+        found = {"data": {"play_count": 12, "play_link": "https://cdn.example/a.mp4"}, "source_name": "omkarcloud-tiktok", "errors": [], "path_used": "free", "credits_charged": 0}
+        with patch("research_mcp.router.tiktok_video", return_value=found):
+            out = route("get_post", url="https://www.tiktok.com/@name/video/1")
+        self.assertEqual(out["path_used"], "free")
+        self.assertEqual(out["metrics"]["views"], 12)
+        self.assertEqual(out["credits_charged"], 0)
+        self.assertEqual(out["media"]["video_urls"], ["https://cdn.example/a.mp4"])
 
     def test_router_returns_free_odysee_without_a_key(self):
         payload = {"data": {"title": "Hello"}, "source_name": "odysee-proxy", "errors": [], "path_used": "free", "credits_charged": 0}
