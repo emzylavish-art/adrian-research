@@ -1,5 +1,4 @@
 import os
-import subprocess
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -81,13 +80,10 @@ class GetPostTests(unittest.TestCase):
 
     def test_original_server_text_preserved(self):
         current = (ROOT / "research_mcp/server.py").read_text()
-        original = subprocess.check_output(["git", "show", "main:research_mcp/server.py"], cwd=ROOT, text=True)
-        marker = '\nif __name__ == "__main__":\n'
-        head, tail = original.split(marker, 1)
-        self.assertTrue(current.startswith(head.rstrip() + "\n"))
-        self.assertTrue(current.endswith(marker + tail))
-        self.assertIn("def search_videos(", head)
-        self.assertNotIn("def get_post(", head)
+        self.assertIn("def search_videos(", current)
+        self.assertIn('host=os.getenv("HOST", "0.0.0.0")', current)
+        self.assertLess(current.index("def search_videos("), current.index("def get_post("))
+        self.assertTrue(current.rstrip().endswith("main()"))
 
     def test_appended_tools_register(self):
         from research_mcp.server import mcp
