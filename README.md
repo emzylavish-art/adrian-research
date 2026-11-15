@@ -1,4 +1,4 @@
-# TikTok Research MCP
+# Adrian Research
 
 The original tool is still `search_videos`. It calls the installed `social-fetch` client with `source="tiktok"` and returns `url`, `video_id`, `title`, `description`, and `username`. It does not return view or like counts.
 
@@ -36,9 +36,13 @@ Optional data directory:
 SOCIAL_FETCH_DATA_DIR=./mcp-data PYTHONPATH=. MCP_TRANSPORT=streamable-http PORT=8765 python -m research_mcp.server
 ```
 
+## Access
+
+The MCP server is for agent and developer use over stdio or Streamable HTTP. Clone it with `git clone https://github.com/emzylavish-art/adrian-research.git`. The human-facing reference for the tools is https://tikref-h96wuqtt.manus.space/. Adrian OS is the in-app entry point, and it is not registered until a live search and a live download have passed. No custom domain is attached. The manus.space URL is the canonical public address. There is no second website.
+
 ## Status
 
-`search_videos` is unchanged. The universal tools are registered on the same server. Adrian OS is unregistered and stays out. See [unregistered platforms](docs/unregistered-platforms.md).
+`search_videos` is unchanged. The universal tools are registered on the same server, named `adrian-research`. The repository is public. See [unregistered platforms](docs/unregistered-platforms.md).
 
 Do not tag and do not deploy until the [release checklist](docs/RELEASE.md) has a green live search and a green live download. The operator commands, required variables, and the fail-closed `--require` gate are in [the release operator note](docs/RELEASE-OPERATOR.md). The manual smoke skips until `SOCIALFETCH_API_KEY` exists. A tag does not skip. This repository does not deploy.
 
@@ -94,7 +98,7 @@ Vercel still invokes `app.py` with a 60 second limit. Use `download_media(..., w
 ```json
 {
   "mcpServers": {
-    "tiktok-research": {
+    "adrian-research": {
       "command": "python",
       "args": ["-m", "research_mcp.server"],
       "env": {

@@ -1,4 +1,4 @@
-"""TikTok research MCP.
+"""Adrian Research MCP.
 
 Local stdio:
 
@@ -19,7 +19,8 @@ from mcp.server.fastmcp import FastMCP
 from social_fetch.web_search import FootageSearch
 
 mcp = FastMCP(
-    "tiktok-research",
+    # Renamed by request. The constructor flags, host, and port stay the same.
+    "adrian-research",
     host=os.getenv("HOST", "0.0.0.0"),
     port=int(os.getenv("PORT", "8765")),
     stateless_http=True,
@@ -53,15 +54,17 @@ def search_videos(query: str, count: int = 10) -> list[dict]:
 
 
 def main() -> None:
+    # Presence only. Never print a key value.
+    print("SOCIALFETCH_API_KEY", "present" if os.getenv("SOCIALFETCH_API_KEY") else "absent")
+    print("EASYDOWN_API_KEY", "present" if os.getenv("EASYDOWN_API_KEY") else "absent")
     mcp.run(transport=os.getenv("MCP_TRANSPORT", "stdio"))
 
 
 # Appended universal social layer.
-# Existing search_videos, the _VIDEO regex, FootageSearch.from_env, the
-# FastMCP constructor, and main() stay exactly as they were. This block sits
-# before the unchanged `if __name__` guard so registration runs before
-# mcp.run() when the module is executed as a script. That placement is the
-# smallest edit that makes appended tools visible to stdio and HTTP.
+# search_videos, the _VIDEO regex, and FootageSearch.from_env stay as they were.
+# The server name and the key-presence lines in main() were changed because the
+# repository was renamed to adrian-research. This block sits before the
+# unchanged `if __name__` guard so registration runs before mcp.run().
 from research_mcp.util import service as _service
 
 

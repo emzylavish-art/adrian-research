@@ -132,7 +132,7 @@ def canonicalize(url: str, timeout: int = 15) -> tuple[str, str | None]:
     needs_head = any(patterns.get(key) and patterns[key].match(text) for key in _SHORT_KEYS)
     if not needs_head:
         return text, platform
-    request = urllib.request.Request(text, method="HEAD", headers={"User-Agent": "tiktok-research-mcp/1.0"})
+    request = urllib.request.Request(text, method="HEAD", headers={"User-Agent": "adrian-research/1.0"})
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
             final = response.geturl()

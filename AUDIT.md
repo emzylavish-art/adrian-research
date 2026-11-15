@@ -7,7 +7,7 @@ Audited 2026-11-15 before the universal layer was appended. This is the ground t
 `research_mcp/server.py` on `main` is 60 lines. It was not rewritten.
 
 - Imports: `__future__.annotations`, `os`, `re`, `FastMCP`, `FootageSearch`.
-- `mcp = FastMCP("tiktok-research", host=HOST or 0.0.0.0, port=PORT or 8765, stateless_http=True, json_response=True)`.
+- The original constructor name was changed to `adrian-research` when the repository was renamed. Host, port, `stateless_http`, and `json_response` were not changed.
 - `_search = FootageSearch.from_env(include_catalogs=False)`.
 - `_VIDEO = re.compile(r"tiktok\.com/@([^/]+)/video/(\d+)")`.
 - One tool, `search_videos(query, count=10)`. It clamps count to 1..20, searches `source="tiktok"`, and returns `url`, `video_id`, `title`, `description`, `username`. It raises `ValueError` on an empty query. That behavior is unchanged.
@@ -83,3 +83,7 @@ Adrian OS exists as a separate product, `emzylavish-art/adrians-mind-command-os`
 ## Not done here
 
 No Vercel deploy was made. No live transcript, comment, or download proof exists for a public URL in this session.
+
+## Keys, 2026-11-15
+
+Social Fetch offers a free account at https://app.socialfetch.dev/signup with 100 credits and no card. EasyDown's developer post says new accounts receive 10 trial credits, and its pricing page says signup credits exist. Tokens are created in the dashboard after sign-in. Neither site published a key without an account login. This session has no email touchpoint, and the browser GitHub login for Social Fetch asked for a password that is not available here. No key was created, so no GitHub secret was set and no key value was written to the repository. EasyDown code stays, because a free trial path is documented. Non-TikTok rich metadata still returns a typed missing-key error until EASYDOWN_API_KEY exists.

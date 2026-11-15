@@ -80,7 +80,7 @@ def _call(method: str, base: str, path: str, *, params=None, body=None, key=None
     data = None if body is None else json.dumps(body).encode("utf-8")
     headers = {
         "Accept": "application/json",
-        "User-Agent": "tiktok-research-mcp/1.0",
+        "User-Agent": "adrian-research/1.0",
         **_header_key(base, key),
     }
     if data is not None:

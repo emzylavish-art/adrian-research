@@ -96,7 +96,7 @@ class GetPostTests(unittest.TestCase):
         self.assertIn("search_videos", names)
         self.assertIn("get_post", names)
         self.assertNotIn("get_tiktok_video", names)
-        self.assertEqual(mcp.name, "tiktok-research")
+        self.assertEqual(mcp.name, "adrian-research")
 
 
 if __name__ == "__main__":
