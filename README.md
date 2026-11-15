@@ -42,7 +42,7 @@ The MCP server is for agent and developer use over stdio or Streamable HTTP. Clo
 
 ## Status
 
-`search_videos` is unchanged. The universal tools are registered on the same server, named `adrian-research`. The repository is public. See [unregistered platforms](docs/unregistered-platforms.md).
+`search_videos` is unchanged. The universal tools are registered on the same server, named `adrian-research`. LinkedIn, Pinterest, Rumble, and Odysee try a free reader first. `FREE_ONLY=true` blocks the paid fall-through. Rumble can return `blocked`. Odysee does not invent a view count. See [AUDIT.md](AUDIT.md) and [unregistered platforms](docs/unregistered-platforms.md).
 
 Do not tag and do not deploy until the [release checklist](docs/RELEASE.md) has a green live search and a green live download. The operator commands, required variables, and the fail-closed `--require` gate are in [the release operator note](docs/RELEASE-OPERATOR.md). The manual smoke skips until `SOCIALFETCH_API_KEY` exists. A tag does not skip. This repository does not deploy.
 
