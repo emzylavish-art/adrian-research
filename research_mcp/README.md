@@ -1,6 +1,6 @@
 # TikTok research MCP
 
-One tool, `search_videos(query, count=10)`, over the installed social-fetch client.
+`search_videos(query, count=10)` is unchanged. Universal tools are appended in `server.py` and described in the repository README. Adrian OS is not registered. Tags and deploys wait on the repository release checklist.
 
 Stdio:
 
