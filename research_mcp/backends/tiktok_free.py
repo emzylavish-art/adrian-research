@@ -24,26 +24,49 @@ from research_mcp.util.errors import request_failed
 
 def get_video(url: str) -> dict:
     modules = _modules()
-    if isinstance(modules, dict):
+    if isinstance(modules, dict) and "videos" not in modules:
         return modules
     try:
-        details = modules["videos"].get_details(url)
-        media = modules["videos"].get_media(url)
+        ref = modules["refs"].resolve_video(url)
+        details = modules["videos"].get_details(ref)
+        media = modules["videos"].get_media(ref)
     except Exception as exc:
         return envelope({}, "omkarcloud-tiktok", [request_failed(f"{type(exc).__name__}: {exc}")])
-    stats = details.get("stats") if isinstance(details, dict) else {}
-    video = media.get("video") if isinstance(media, dict) else {}
-    stats = stats if isinstance(stats, dict) else {}
-    video = video if isinstance(video, dict) else {}
+    if not isinstance(details, dict):
+        return envelope({}, "omkarcloud-tiktok", [request_failed("video details were not a dict")])
+    stats = details.get("stats") if isinstance(details.get("stats"), dict) else {}
+    author = details.get("author") if isinstance(details.get("author"), dict) else {}
+    author_stats = details.get("author_stats") if isinstance(details.get("author_stats"), dict) else {}
+    video = {}
+    if isinstance(media, dict) and isinstance(media.get("video"), dict):
+        video = media["video"]
+    elif isinstance(details.get("video"), dict):
+        video = details["video"]
+    duration = video.get("duration_seconds")
+    duration_ms = int(duration * 1000) if isinstance(duration, (int, float)) else None
     data = {
+        "title": details.get("title"),
+        "description": details.get("description"),
+        "author": author.get("username"),
+        "display_name": author.get("nickname"),
+        "bio": author.get("biography"),
+        "followers": _int(author_stats.get("follower_count")),
+        "verified": author.get("is_verified") if isinstance(author.get("is_verified"), bool) else None,
+        "avatar_url": author.get("profile_picture"),
+        "profile_url": author.get("link"),
+        "created_at": details.get("created_at"),
         "play_count": _int(stats.get("play_count")),
         "like_count": _int(stats.get("like_count")),
         "comment_count": _int(stats.get("comment_count")),
         "share_count": _int(stats.get("share_count")),
+        "save_count": _int(stats.get("save_count")),
+        "repost_count": _int(stats.get("repost_count")),
         "play_link": video.get("play_link"),
         "download_link": video.get("download_link"),
-        "caption": details.get("caption") or details.get("desc") if isinstance(details, dict) else None,
-        "author": (details.get("author") or {}).get("username") if isinstance(details, dict) and isinstance(details.get("author"), dict) else None,
+        "cover": details.get("cover") or video.get("cover"),
+        "duration_ms": duration_ms,
+        "width": _int(video.get("width")),
+        "height": _int(video.get("height")),
     }
     errors = _missing(data, ("play_count", "like_count", "comment_count", "share_count", "play_link"))
     return envelope(data, "omkarcloud-tiktok", errors)
@@ -51,7 +74,7 @@ def get_video(url: str) -> dict:
 
 def get_profile(handle: str) -> dict:
     modules = _modules()
-    if isinstance(modules, dict):
+    if isinstance(modules, dict) and "users" not in modules:
         return modules
     try:
         profile = modules["users"].get_profile(handle)
@@ -78,10 +101,10 @@ def _modules():
     if root and root not in sys.path:
         sys.path.insert(0, root)
     try:
-        from tiktok import users, videos
+        from tiktok import refs, users, videos
     except Exception as exc:
         return envelope({}, "omkarcloud-tiktok", [request_failed(f"tiktok scraper is not importable: {type(exc).__name__}")])
-    return {"users": users, "videos": videos}
+    return {"refs": refs, "users": users, "videos": videos}
 
 
 def _int(value):

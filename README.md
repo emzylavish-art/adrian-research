@@ -44,6 +44,29 @@ The MCP server is for agent and developer use over stdio or Streamable HTTP. Clo
 
 `search_videos` is unchanged. The universal tools are registered on the same server, named `adrian-research`. LinkedIn, Pinterest, Rumble, and Odysee try a free reader first. `FREE_ONLY=true` blocks the paid fall-through. Rumble can return `blocked`. Odysee does not invent a view count. See [AUDIT.md](AUDIT.md) and [unregistered platforms](docs/unregistered-platforms.md).
 
+## Free backends
+
+Every free response sets `path_used` to `free` and `credits_charged` to `0`. A missing value stays null and names the source in `errors`. Nothing below is a priced catalog number.
+
+| Backend | What the free path can return | What stayed null or unpaid |
+| --- | --- | --- |
+| `linkedin_free.py` | Guest HTML name and headline, when LinkedIn serves the page | Followers stay null. HTTP 429 and 999 stop the module. A 2026-11-15 smoke of `https://www.linkedin.com/in/williamhgates` returned `rate_limited` and left every content field null. |
+| `pinterest_free.py` | Pin image URL, author, and board from `PinResource/get` | The smoked pin `https://www.pinterest.com/pin/16466354885769312/` had no title. Its description was a single space. Board is in `raw_platform_data`, not a schema field. |
+| `rumble_free.py` | A parsed public page, if the page is a video document | `https://rumble.com/v1.html` returned `blocked` because the response was a challenge page. Title, channel, views, and media stayed null. |
+| `odysee_free.py` | Title, description, and channel from `api.na-backend.odysee.com` | View count stayed null. The smoked claim was `lbry://@3ctech#0/Odysee#288`. No media URLs were returned. |
+| `tiktok_free.py` | Play, like, comment, share, save, and repost counts, author, description, created date, cover, duration, size, and the MP4 play link | Only when `TIKTOK_SCRAPER_HOME` points at an omkarcloud checkout and that checkout's own dependencies are installed. Title stayed null on the smoked video. Transcript stays null. Without the checkout, `get_post` falls through to the existing lookup. |
+| `youtube_free.py` | Like and dislike counts from `returnyoutubedislikeapi.com/votes` | Not called by `get_post`. A YouTube URL with no key still returns `api_key_missing` for EasyDown and leaves the content fields null. |
+| `socialfetch_local.py` | Local `Client.resource`, download, account, and image calls on domains the installed library recognizes | Not a structured metadata source. A recognized domain is not a download proof. |
+
+These modules were not created:
+
+- `reddit_free.py`: Reddit `.json` returned HTTP 403.
+- `tiktok_oembed.py`: TikTok oEmbed returned HTTP 200 without title, author, cover, or duration. `open-api.tiktokapis.com` did not resolve.
+- `instagram_free.py`: Instaloader 4.16 profile fetch hit a login wall and HTTP 429. No follower count was observed. One post caption and image were not enough to claim a profile reader.
+- `scraperx_free.py`: PyPI `scraperx` 0.7.1 is a generic SDK. `prezis/scraperx` was not run.
+
+Paid-only, or unavailable without a key: transcripts, TikTok shop, audience, engagement, hosted media, follower and following lists, and the Social Fetch or EasyDown rich metadata for platforms the free readers do not cover. Keys unlock that enrichment. They are not required for the server to boot. `FREE_ONLY=true` hard-blocks the paid fall-through.
+
 Do not tag and do not deploy until the [release checklist](docs/RELEASE.md) has a green live search and a green live download. The operator commands, required variables, and the fail-closed `--require` gate are in [the release operator note](docs/RELEASE-OPERATOR.md). The manual smoke skips until `SOCIALFETCH_API_KEY` exists. A tag does not skip. This repository does not deploy.
 
 ## Universal tools
@@ -79,6 +102,8 @@ Optional process settings:
 | `SOCIAL_FETCH_DATA_DIR` | `./mcp-data` | local jobs, saved resources, and the release proof |
 | `SOCIAL_FETCH_NS` | `research` | download namespace |
 | `SOCIALFETCH_REGION` | `US` | TikTok trending region when the tool argument is omitted |
+| `FREE_ONLY` | unset | `true` hard-blocks every paid fall-through |
+| `TIKTOK_SCRAPER_HOME` | unset | omkarcloud/tiktok-scraper checkout used by `tiktok_free.py` |
 | `LIVE_SEARCH_QUERY` | `cat` | release-gate search only |
 | `LIVE_DOWNLOAD_URL` | `https://www.youtube.com/watch?v=jNQXAC9IVRw` | release-gate download only |
 | `LIVE_DOWNLOAD_TIMEOUT` | `900` | release-gate download timeout in seconds |
