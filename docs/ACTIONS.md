@@ -20,6 +20,8 @@ This matches GitHub's own report of hosted jobs that fail before runner allocati
 
 No workflow file can allocate a runner that GitHub refuses to start. A YAML change will not turn run `43720338417` green.
 
+The account checks and the exact rerun command are in [ACTIONS-UNBLOCK.md](ACTIONS-UNBLOCK.md). Do not rerun the unit job before those checks pass.
+
 ## Secret-gated workflow
 
 GitHub does not allow `secrets` in a job-level `if`. A job that wants to read a secret must request a runner first. That is why the old Integration workflow started a `keys` job on `ubuntu-latest` even when both secrets were absent. On this account that job dies in two seconds and the workflow is red, instead of skipped.

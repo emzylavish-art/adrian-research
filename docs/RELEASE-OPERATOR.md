@@ -56,3 +56,5 @@ Only then does it write `SOCIAL_FETCH_DATA_DIR/release-proof.json`. If the searc
 `--smoke` is not the gate. It prints `release smoke skipped: SOCIALFETCH_API_KEY is not set` and exits 0 when the key is missing. It writes no proof. `--check` only reads an existing proof. Neither one makes a tag safe.
 
 Adrian OS is not part of this release. Do not tag in order to register the server there.
+
+The private-repo unit job is a separate block. Do not rerun it until the checks in [ACTIONS-UNBLOCK.md](ACTIONS-UNBLOCK.md) pass. A two-second failure with no runner is not a test result.
