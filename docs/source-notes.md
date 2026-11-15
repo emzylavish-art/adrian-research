@@ -25,6 +25,7 @@ Saved 2026-11-15 so later edits do not depend on a search snippet.
 - Free smoke test: GET https://api.socialfetch.dev/v1/whoami
 - Authoritative billed amount: meta.creditsCharged
 - Bluesky routes that exist: GET /v1/bluesky/posts, GET /v1/bluesky/profiles/{handle}, GET /v1/bluesky/profiles/{handle}/posts
+- Next TikTok routes appended from the 2026-11-15 catalog: /v1/tiktok/search, /v1/tiktok/search/top, /v1/tiktok/users/search, /v1/tiktok/profiles/{handle}/followers, /following, /region, /audience, /engagement, /live, /v1/tiktok/live, /v1/tiktok/videos/download, /v1/tiktok/collections/videos, /v1/tiktok/songs, /v1/tiktok/music/{clipId}/videos, /v1/tiktok/shop/products, /v1/tiktok/products, /v1/tiktok/products/reviews, /v1/tiktok/profiles/{handle}/showcase-products, /v1/tiktok/ad-library/ads, /v1/tiktok/ad-library/ads/search. Audience is catalogued at 30 credits, engagement at 5, hosted download at 11 when media is returned.
 
 ## social-fetch library
 

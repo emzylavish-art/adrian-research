@@ -48,6 +48,8 @@ Do not tag and do not deploy until the [release checklist](docs/RELEASE.md) has 
 
 Info tools return the keys in `research_mcp/util/schema.py`. Empty fields are null. Failures are in `errors` and do not crash the server. `get_trending`, `search_hashtags`, `search_suggestions`, and `search_shop_products` are TikTok-only and say so. They do not invent results for other platforms.
 
+The next TikTok tools are appended below that layer and do not replace `search_videos`. They are `search_tiktok_videos`, `search_tiktok_top`, `search_tiktok_users`, `list_tiktok_followers`, `list_tiktok_following`, `get_tiktok_region`, `get_tiktok_audience`, `get_tiktok_engagement`, `get_tiktok_live`, `get_tiktok_live_info`, `get_tiktok_hosted_media`, `list_tiktok_collection`, `get_tiktok_song`, `list_tiktok_sound_videos`, `list_tiktok_store_products`, `get_tiktok_product`, `list_tiktok_product_reviews`, `list_tiktok_showcase`, `get_tiktok_ad`, and `search_tiktok_ads`. Audience, engagement, and hosted media stay local until `confirm=True`. `credits_charged` still comes from the response.
+
 ## Environment
 
 Required to start from this repository:

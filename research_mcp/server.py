@@ -165,5 +165,132 @@ def get_account_sample(url: str, count: int = 3) -> dict:
     """Read a bounded account sample from the installed library. Coverage depends on the library. It is not a full follower download."""
     return _service.get_account_sample(url, count)
 
+
+# Next TikTok tools, appended below the universal layer.
+# search_videos, the FastMCP constructor, host, port, transport, and main()
+# are not modified. This block stays above the unchanged entry guard.
+
+from research_mcp.util import tiktok as _tiktok
+
+
+@mcp.tool()
+def search_tiktok_videos(query: str, date_posted: str | None = None, sort_by: str | None = None, region: str | None = None, cursor: str | None = None) -> dict:
+    """Search TikTok's own video index. This does not call or replace search_videos. Read credits_charged from the response. A missing key returns an error and does not call the network."""
+    return _tiktok.search_tiktok_videos(query, date_posted, sort_by, region, cursor)
+
+
+@mcp.tool()
+def search_tiktok_top(query: str, date_posted: str | None = None, sort_by: str | None = None, region: str | None = None, cursor: str | None = None) -> dict:
+    """Search TikTok Top results, including photo posts. Videos-only search is search_tiktok_videos. This does not replace search_videos."""
+    return _tiktok.search_tiktok_top(query, date_posted, sort_by, region, cursor)
+
+
+@mcp.tool()
+def search_tiktok_users(query: str, cursor: str | None = None) -> dict:
+    """Search public TikTok users. Results use the documented users array. Missing key returns an error dict."""
+    return _tiktok.search_tiktok_users(query, cursor)
+
+
+@mcp.tool()
+def list_tiktok_followers(handle: str, cursor: str | None = None, user_id: str | None = None) -> dict:
+    """List one page of public TikTok followers. hidden, private, and not_found come back in errors. Do not treat an empty page as a full follower download."""
+    return _tiktok.list_tiktok_followers(handle, cursor, user_id)
+
+
+@mcp.tool()
+def list_tiktok_following(handle: str, cursor: str | None = None) -> dict:
+    """List one page of public TikTok accounts a profile follows. A hidden list returns an error entry, not a crash."""
+    return _tiktok.list_tiktok_following(handle, cursor)
+
+
+@mcp.tool()
+def get_tiktok_region(handle: str) -> dict:
+    """Look up the public region record for a TikTok handle. The billed amount is credits_charged when the response includes it."""
+    return _tiktok.get_tiktok_region(handle)
+
+
+@mcp.tool()
+def get_tiktok_audience(handle: str, confirm: bool = False) -> dict:
+    """Look up a TikTok audience report. The catalog lists 30 credits. The call does not run unless confirm=True. credits_charged still comes from the response, not from that catalog number."""
+    return _tiktok.get_tiktok_audience(handle, confirm)
+
+
+@mcp.tool()
+def get_tiktok_engagement(handle: str, confirm: bool = False) -> dict:
+    """Look up a TikTok engagement audit. The catalog lists 5 credits. The call does not run unless confirm=True."""
+    return _tiktok.get_tiktok_engagement(handle, confirm)
+
+
+@mcp.tool()
+def get_tiktok_live(handle: str) -> dict:
+    """Look up whether a TikTok handle is live. Use get_tiktok_live_info with the returned room id and user id for the room record."""
+    return _tiktok.get_tiktok_live(handle)
+
+
+@mcp.tool()
+def get_tiktok_live_info(room_id: str, user_id: str) -> dict:
+    """Get one TikTok live room. Both room_id and user_id are required by the documented route."""
+    return _tiktok.get_tiktok_live_info(room_id, user_id)
+
+
+@mcp.tool()
+def get_tiktok_hosted_media(url: str, region: str | None = None, confirm: bool = False) -> dict:
+    """Ask Social Fetch to host a TikTok file. The catalog lists 11 credits when media is returned. This is not download_media, and it does not run unless confirm=True."""
+    return _tiktok.get_tiktok_hosted_media(url, region, confirm)
+
+
+@mcp.tool()
+def list_tiktok_collection(url: str, cursor: str | None = None) -> dict:
+    """List videos in a public TikTok collection URL. This route has no lookupStatus. An empty list is not proof the collection is missing."""
+    return _tiktok.list_tiktok_collection(url, cursor)
+
+
+@mcp.tool()
+def get_tiktok_song(song_id: str) -> dict:
+    """Get one TikTok sound by the id from a music URL or a video's music.id. Do not pass the whole music URL as the id."""
+    return _tiktok.get_tiktok_song(song_id)
+
+
+@mcp.tool()
+def list_tiktok_sound_videos(clip_id: str, cursor: str | None = None) -> dict:
+    """List public videos using a TikTok music clip id. An empty page has no lookupStatus on this route."""
+    return _tiktok.list_tiktok_sound_videos(clip_id, cursor)
+
+
+@mcp.tool()
+def list_tiktok_store_products(url: str, cursor: str | None = None, region: str | None = None, sort_by: str | None = None) -> dict:
+    """List products in a public TikTok Shop store URL. region must be one of the documented shop catalogs. US is the upstream default when omitted."""
+    return _tiktok.list_tiktok_store_products(url, cursor, region, sort_by)
+
+
+@mcp.tool()
+def get_tiktok_product(url: str, region: str | None = None) -> dict:
+    """Get one TikTok Shop product from its public product URL. This does not search the catalog."""
+    return _tiktok.get_tiktok_product(url, region)
+
+
+@mcp.tool()
+def list_tiktok_product_reviews(url: str | None = None, product_id: str | None = None, region: str | None = None, page: int | None = None) -> dict:
+    """List TikTok Shop reviews. Provide the product URL or the product id. Pagination is page-based."""
+    return _tiktok.list_tiktok_product_reviews(url, product_id, region, page)
+
+
+@mcp.tool()
+def list_tiktok_showcase(handle: str, cursor: str | None = None, region: str | None = None) -> dict:
+    """List products showcased on a TikTok profile. An empty list has no lookupStatus. Call get_profile first if you need to know whether the profile exists."""
+    return _tiktok.list_tiktok_showcase(handle, cursor, region)
+
+
+@mcp.tool()
+def get_tiktok_ad(ad_id: str | None = None, url: str | None = None) -> dict:
+    """Get one public TikTok Ad Library or Top Ads record by ad id or detail URL."""
+    return _tiktok.get_tiktok_ad(ad_id, url)
+
+
+@mcp.tool()
+def search_tiktok_ads(query: str | None = None, advertiser_name: str | None = None, advertiser_business_id: str | None = None, country: str | None = None, start_date: str | None = None, end_date: str | None = None, cursor: str | None = None) -> dict:
+    """Search the public TikTok Ad Library. US is not a supported country. advertiser_business_id requires advertiser_name. Dates must be sent together as YYYY-MM-DD."""
+    return _tiktok.search_tiktok_ads(query, advertiser_name, advertiser_business_id, country, start_date, end_date, cursor)
+
 if __name__ == "__main__":
     main()
