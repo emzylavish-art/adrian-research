@@ -392,7 +392,41 @@ def get_post(url: str, include_transcript: bool = False, include_comments: bool 
             errors.append(job)
     partial["credits_charged"] = credits
     partial["errors"] = errors
+    if platform == "youtube" and not os.getenv("EASYDOWN_API_KEY"):
+        # FREE-FIRST: EasyDown is the paid YouTube metadata path. A missing
+        # key must not leave likes and dislikes null when the verified
+        # returnyoutubedislike counts source can fill them. Other fields
+        # stay null. This does not invent title, views, or media.
+        partial, errors = _merge_youtube_counts(canonical, partial, errors)
+        partial["errors"] = errors
     return normalize(partial, platform, checked, canonical)
+
+
+def _merge_youtube_counts(url: str, partial: dict, errors: list) -> tuple[dict, list]:
+    from research_mcp.backends.youtube_free import get_counts
+
+    counted = get_counts(url)
+    data = counted.get("data") if isinstance(counted.get("data"), dict) else {}
+    metrics = partial.get("metrics") if isinstance(partial.get("metrics"), dict) else {}
+    if metrics.get("likes") is None and isinstance(data.get("likes"), int):
+        metrics["likes"] = data["likes"]
+    if isinstance(data.get("dislikes"), int):
+        metrics["dislikes"] = data["dislikes"]
+    partial["metrics"] = metrics
+    partial["path_used"] = "free"
+    library_filled = bool(partial.get("title") or (partial.get("media") or {}).get("video_urls"))
+    partial["source_detail"] = (
+        "social-fetch-resource+returnyoutubedislike" if library_filled else "returnyoutubedislike"
+    )
+    if not isinstance(partial.get("credits_charged"), int):
+        partial["credits_charged"] = 0
+    errors.extend(counted.get("errors") or [])
+    if not library_filled:
+        errors.append({
+            "error": "missing_field",
+            "detail": "returnyoutubedislike returned counts only; title, author, views, and media were not on that source",
+        })
+    return partial, errors
 
 
 def search_posts(query: str, platform: str | None = None, count: int = 10, search=None) -> list:

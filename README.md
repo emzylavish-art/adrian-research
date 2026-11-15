@@ -55,7 +55,7 @@ Every free response sets `path_used` to `free` and `credits_charged` to `0`. A m
 | `rumble_free.py` | A parsed public page, if the page is a video document | `https://rumble.com/v1.html` returned `blocked` because the response was a challenge page. Title, channel, views, and media stayed null. |
 | `odysee_free.py` | Title, description, and channel from `api.na-backend.odysee.com` | View count stayed null. The smoked claim was `lbry://@3ctech#0/Odysee#288`. No media URLs were returned. |
 | `tiktok_free.py` | Play, like, comment, share, save, and repost counts, author, description, created date, cover, duration, size, and the MP4 play link | Only when `TIKTOK_SCRAPER_HOME` points at an omkarcloud checkout and that checkout's own dependencies are installed. Title stayed null on the smoked video. Transcript stays null. Without the checkout, `get_post` falls through to the existing lookup. |
-| `youtube_free.py` | Like and dislike counts from `returnyoutubedislikeapi.com/votes` | Not called by `get_post`. A YouTube URL with no key still returns `api_key_missing` for EasyDown and leaves the content fields null. |
+| `youtube_free.py` | Like and dislike counts from `returnyoutubedislikeapi.com/votes` | `get_post` calls this when `EASYDOWN_API_KEY` is absent. Title, author, views, and media stay null. A present EasyDown key keeps the paid lookup and does not call this module. |
 | `socialfetch_local.py` | Local `Client.resource`, download, account, and image calls on domains the installed library recognizes | Not a structured metadata source. A recognized domain is not a download proof. |
 
 These modules were not created:
@@ -66,6 +66,8 @@ These modules were not created:
 - `scraperx_free.py`: PyPI `scraperx` 0.7.1 is a generic SDK. `prezis/scraperx` was not run.
 
 Paid-only, or unavailable without a key: transcripts, TikTok shop, audience, engagement, hosted media, follower and following lists, and the Social Fetch or EasyDown rich metadata for platforms the free readers do not cover. Keys unlock that enrichment. They are not required for the server to boot. `FREE_ONLY=true` hard-blocks the paid fall-through.
+
+The field-by-field smoke matrix, including those paid gaps, is in [docs/FREE-COVERAGE.md](docs/FREE-COVERAGE.md).
 
 Do not tag and do not deploy until the [release checklist](docs/RELEASE.md) has a green live search and a green live download. The operator commands, required variables, and the fail-closed `--require` gate are in [the release operator note](docs/RELEASE-OPERATOR.md). The manual smoke skips until `SOCIALFETCH_API_KEY` exists. A tag does not skip. This repository does not deploy.
 

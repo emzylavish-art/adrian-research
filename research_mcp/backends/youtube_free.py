@@ -3,6 +3,8 @@
 GET https://returnyoutubedislikeapi.com/votes?videoId=jNQXAC9IVRw
 returned likes and dislikes as JSON numbers on 2026-11-15. This module
 does not download files. A missing field stays null.
+get_post calls get_counts when EASYDOWN_API_KEY is absent. A present key
+keeps the existing EasyDown lookup and does not call this module.
 
 Breaks when that votes path or the likes/dislikes keys change.
 """

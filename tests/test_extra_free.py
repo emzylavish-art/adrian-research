@@ -1,10 +1,12 @@
 import json
 import unittest
 from unittest.mock import patch
+import os
 from urllib.error import HTTPError
 
 from research_mcp.backends import linkedin_free, odysee_free, pinterest_free, rumble_free, youtube_free
 from research_mcp.router import route
+from research_mcp.util.service import get_post
 
 
 class _Response:
@@ -77,6 +79,39 @@ class ExtraFreeTests(unittest.TestCase):
         self.assertEqual(out["data"]["likes"], 3)
         self.assertEqual(out["data"]["dislikes"], 1)
         self.assertEqual(out["credits_charged"], 0)
+
+    def test_youtube_get_post_uses_counts_when_easydown_key_is_missing(self):
+        empty = ({}, [{"error": "api_key_missing", "detail": "no key configured for https://api.easydown.org"}], 0)
+        counts = {
+            "data": {"likes": 5, "dislikes": 1},
+            "source_name": "returnyoutubedislike",
+            "errors": [],
+            "path_used": "free",
+            "credits_charged": 0,
+        }
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("EASYDOWN_API_KEY", None)
+            with patch("research_mcp.util.service._fill", return_value=empty):
+                with patch("research_mcp.backends.youtube_free.get_counts", return_value=counts):
+                    out = get_post("https://www.youtube.com/watch?v=jNQXAC9IVRw")
+        self.assertEqual(out["path_used"], "free")
+        self.assertEqual(out["source_detail"], "returnyoutubedislike")
+        self.assertEqual(out["metrics"]["likes"], 5)
+        self.assertEqual(out["metrics"]["dislikes"], 1)
+        self.assertEqual(out["credits_charged"], 0)
+        self.assertIsNone(out["title"])
+        self.assertTrue(any(item.get("error") == "api_key_missing" for item in out["errors"]))
+
+    def test_youtube_get_post_does_not_replace_easydown_when_key_is_set(self):
+        filled = ({"title": "Clip", "metrics": {"likes": 9}}, [], 3)
+        with patch.dict(os.environ, {"EASYDOWN_API_KEY": "ed_test"}):
+            with patch("research_mcp.util.service._fill", return_value=filled):
+                with patch("research_mcp.backends.youtube_free.get_counts") as counts:
+                    out = get_post("https://www.youtube.com/watch?v=jNQXAC9IVRw")
+        counts.assert_not_called()
+        self.assertEqual(out["title"], "Clip")
+        self.assertEqual(out["metrics"]["likes"], 9)
+        self.assertIsNone(out["path_used"])
 
     def test_missing_tiktok_scraper_keeps_existing_path(self):
         empty = {"data": {}, "source_name": "omkarcloud-tiktok", "errors": [{"error": "request_failed"}], "path_used": "free", "credits_charged": 0}

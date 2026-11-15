@@ -77,7 +77,9 @@ def get_post(
     download_media: bool = False,
 ) -> dict:
     """Look up one public post from any supported platform. Returns the same shape every time. Read errors before treating empty fields as real data. download_media writes a local job under the data directory and can take several minutes."""
-    # FREE-FIRST: only LinkedIn, Pinterest, Rumble, and Odysee are claimed here.
+    # FREE-FIRST: LinkedIn, Pinterest, Rumble, Odysee, and a present TikTok
+    # scraper checkout are claimed in the router. YouTube likes and dislikes
+    # are merged by service.get_post when EASYDOWN_API_KEY is absent.
     # Other URLs return None and keep the existing lookup.
     routed = _route("get_post", url=url, include_transcript=include_transcript, include_comments=include_comments, download_media=download_media)
     if routed is not None:
