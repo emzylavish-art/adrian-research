@@ -1,6 +1,6 @@
 # Release checklist
 
-Do not create a version tag and do not deploy until both of these have passed in the tag job of `.github/workflows/release.yml` on the commit you intend to ship:
+Do not create a version tag and do not deploy until both of these have passed in the tag job of `.github/workflows/release.yml` on the commit you intend to ship. The operator form of this rule, including every required variable and the exact `--require` command, is in [RELEASE-OPERATOR.md](RELEASE-OPERATOR.md).
 
 1. One live search, `GET /v1/tiktok/search`, returns at least one video with a public URL.
 2. One live download of a public video reaches `ready`, exports a non-empty file under `SOCIAL_FETCH_DATA_DIR`, and returns a sha256.

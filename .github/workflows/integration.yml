@@ -1,64 +1,81 @@
 name: Integration
 
+# Do not request a runner just to discover a missing key. GitHub forbids
+# secrets in a job-level if, and this private account currently fails hosted
+# jobs before a runner is allocated. A plain dispatch skips both jobs. Turning
+# an input on still exits 0 when that secret is empty. See docs/ACTIONS.md.
 on:
   workflow_dispatch:
+    inputs:
+      socialfetch:
+        description: Run the Social Fetch whoami check
+        type: boolean
+        default: false
+      easydown:
+        description: Run the EasyDown authenticated parse check
+        type: boolean
+        default: false
 
 jobs:
-  keys:
-    runs-on: ubuntu-latest
-    outputs:
-      socialfetch: ${{ steps.check.outputs.socialfetch }}
-      easydown: ${{ steps.check.outputs.easydown }}
-    steps:
-      - id: check
-        env:
-          SOCIALFETCH_API_KEY: ${{ secrets.SOCIALFETCH_API_KEY }}
-          EASYDOWN_API_KEY: ${{ secrets.EASYDOWN_API_KEY }}
-        run: |
-          if [ -n "$SOCIALFETCH_API_KEY" ]; then
-            echo "socialfetch=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "socialfetch=false" >> "$GITHUB_OUTPUT"
-            echo "Social Fetch job skipped until SOCIALFETCH_API_KEY exists."
-          fi
-          if [ -n "$EASYDOWN_API_KEY" ]; then
-            echo "easydown=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "easydown=false" >> "$GITHUB_OUTPUT"
-            echo "EasyDown job skipped until EASYDOWN_API_KEY exists."
-          fi
-
   socialfetch:
-    needs: keys
-    if: needs.keys.outputs.socialfetch == 'true'
+    if: ${{ inputs.socialfetch }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Skip until SOCIALFETCH_API_KEY exists
+        id: gate
+        env:
+          SOCIALFETCH_API_KEY: ${{ secrets.SOCIALFETCH_API_KEY }}
+        run: |
+          if [ -z "$SOCIALFETCH_API_KEY" ]; then
+            echo "Social Fetch job skipped until SOCIALFETCH_API_KEY exists."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@v4
+        if: steps.gate.outputs.run == 'true'
       - uses: actions/setup-python@v5
+        if: steps.gate.outputs.run == 'true'
         with:
           python-version: "3.12"
       - name: Install
+        if: steps.gate.outputs.run == 'true'
         run: python -m pip install -r requirements.txt
       - name: Social Fetch whoami
+        if: steps.gate.outputs.run == 'true'
         env:
           RUN_LIVE: "1"
           SOCIALFETCH_API_KEY: ${{ secrets.SOCIALFETCH_API_KEY }}
         run: PYTHONPATH=. python -m pytest -q tests/test_live_backends.py::LiveBackendTests::test_socialfetch_whoami
 
   easydown:
-    needs: keys
-    if: needs.keys.outputs.easydown == 'true'
+    if: ${{ inputs.easydown }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Skip until EASYDOWN_API_KEY exists
+        id: gate
+        env:
+          EASYDOWN_API_KEY: ${{ secrets.EASYDOWN_API_KEY }}
+        run: |
+          if [ -z "$EASYDOWN_API_KEY" ]; then
+            echo "EasyDown job skipped until EASYDOWN_API_KEY exists."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@v4
+        if: steps.gate.outputs.run == 'true'
       - uses: actions/setup-python@v5
+        if: steps.gate.outputs.run == 'true'
         with:
           python-version: "3.12"
       - name: Install
+        if: steps.gate.outputs.run == 'true'
         run: python -m pip install -r requirements.txt
       - name: EasyDown authenticated parse
+        if: steps.gate.outputs.run == 'true'
         env:
           RUN_LIVE: "1"
           EASYDOWN_API_KEY: ${{ secrets.EASYDOWN_API_KEY }}
