@@ -22,6 +22,7 @@ Saved 2026-11-15 so later edits do not depend on a search snippet.
 - Bluesky profile: https://www.socialfetch.dev/docs/api/v1/bluesky/profiles/handle/get.mdx
 - Errors: https://www.socialfetch.dev/docs/errors.mdx
 - Auth: x-api-key
+- Free smoke test: GET https://api.socialfetch.dev/v1/whoami
 - Authoritative billed amount: meta.creditsCharged
 - Bluesky routes that exist: GET /v1/bluesky/posts, GET /v1/bluesky/profiles/{handle}, GET /v1/bluesky/profiles/{handle}/posts
 

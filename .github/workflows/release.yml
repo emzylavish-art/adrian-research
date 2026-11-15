@@ -1,0 +1,32 @@
+name: Release gate
+
+# This workflow blocks a tag. It does not deploy. Do not add a deploy job
+# until both live steps in this file are green for the same commit.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  live-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Install Python dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: One live search and one live download
+        env:
+          SOCIAL_FETCH_DATA_DIR: ./mcp-data
+          LIVE_DOWNLOAD_URL: https://www.youtube.com/watch?v=jNQXAC9IVRw
+          LIVE_DOWNLOAD_TIMEOUT: "900"
+        run: PYTHONPATH=. python scripts/release_gate.py --run

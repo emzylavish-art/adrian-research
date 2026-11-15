@@ -4,23 +4,62 @@ on:
   workflow_dispatch:
 
 jobs:
-  integration:
+  keys:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    outputs:
+      socialfetch: ${{ steps.check.outputs.socialfetch }}
+      easydown: ${{ steps.check.outputs.easydown }}
+    steps:
+      - id: check
+        env:
+          SOCIALFETCH_API_KEY: ${{ secrets.SOCIALFETCH_API_KEY }}
+          EASYDOWN_API_KEY: ${{ secrets.EASYDOWN_API_KEY }}
+        run: |
+          if [ -n "$SOCIALFETCH_API_KEY" ]; then
+            echo "socialfetch=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "socialfetch=false" >> "$GITHUB_OUTPUT"
+            echo "Social Fetch job skipped until SOCIALFETCH_API_KEY exists."
+          fi
+          if [ -n "$EASYDOWN_API_KEY" ]; then
+            echo "easydown=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "easydown=false" >> "$GITHUB_OUTPUT"
+            echo "EasyDown job skipped until EASYDOWN_API_KEY exists."
+          fi
+
+  socialfetch:
+    needs: keys
+    if: needs.keys.outputs.socialfetch == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - name: Install dependencies
+      - name: Install
         run: python -m pip install -r requirements.txt
-
-      - name: Live checks
+      - name: Social Fetch whoami
         env:
           RUN_LIVE: "1"
           SOCIALFETCH_API_KEY: ${{ secrets.SOCIALFETCH_API_KEY }}
+        run: PYTHONPATH=. python -m pytest -q tests/test_live_backends.py::LiveBackendTests::test_socialfetch_whoami
+
+  easydown:
+    needs: keys
+    if: needs.keys.outputs.easydown == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: python -m pip install -r requirements.txt
+      - name: EasyDown authenticated parse
+        env:
+          RUN_LIVE: "1"
           EASYDOWN_API_KEY: ${{ secrets.EASYDOWN_API_KEY }}
-          SOCIAL_FETCH_DATA_DIR: ./mcp-data
-        run: PYTHONPATH=. python -m pytest -q
+        run: PYTHONPATH=. python -m pytest -q tests/test_live_backends.py::LiveBackendTests::test_easydown_accepts_bearer
