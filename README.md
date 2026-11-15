@@ -40,7 +40,7 @@ SOCIAL_FETCH_DATA_DIR=./mcp-data PYTHONPATH=. MCP_TRANSPORT=streamable-http PORT
 
 `search_videos` is unchanged. The universal tools are registered on the same server. Adrian OS is unregistered and stays out. See [unregistered platforms](docs/unregistered-platforms.md).
 
-Do not tag and do not deploy until the [release checklist](docs/RELEASE.md) has a green live search and a green live download. The manual smoke skips until `SOCIALFETCH_API_KEY` exists. A tag does not skip. This branch does not deploy.
+Do not tag and do not deploy until the [release checklist](docs/RELEASE.md) has a green live search and a green live download. The operator commands, required variables, and the fail-closed `--require` gate are in [the release operator note](docs/RELEASE-OPERATOR.md). The manual smoke skips until `SOCIALFETCH_API_KEY` exists. A tag does not skip. This repository does not deploy.
 
 ## Universal tools
 
