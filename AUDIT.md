@@ -87,3 +87,30 @@ No Vercel deploy was made. No live transcript, comment, or download proof exists
 ## Keys, 2026-11-15
 
 Social Fetch offers a free account at https://app.socialfetch.dev/signup with 100 credits and no card. EasyDown's developer post says new accounts receive 10 trial credits, and its pricing page says signup credits exist. Tokens are created in the dashboard after sign-in. Neither site published a key without an account login. This session has no email touchpoint, and the browser GitHub login for Social Fetch asked for a password that is not available here. No key was created, so no GitHub secret was set and no key value was written to the repository. EasyDown code stays, because a free trial path is documented. Non-TikTok rich metadata still returns a typed missing-key error until EASYDOWN_API_KEY exists.
+
+## Four extra free modules, 2026-11-15
+
+LinkedIn guest HTML for https://www.linkedin.com/in/williamhgates returned HTTP 200 and `og:title`. It was not dead. `linkedin_free.py` makes one request and treats 429 and 999 as terminal. Follower count was not in that meta title, so it stays null.
+
+The installed social-fetch package has no Nitrograph Pinterest endpoint. `pinterest_download` calls `https://www.pinterest.com/resource/PinResource/get/`. A fake pin id returned JSON 404 from that endpoint, which proves the route answers. A search page did not expose a live pin id. `pinterest_free.py` wraps PinResource and falls back to `Client.resource`.
+
+`https://rumble.com/` returned HTTP 403 and a Cloudflare challenge. `rumble_free.py` still exists. It reads `Client.resource` and returns `blocked` instead of a made-up view count.
+
+`https://api.odysee.com/api/v1/proxy` returned 404. `https://api.na-backend.odysee.com/api/v1/proxy` resolved a claim and `claim_search` returned a title. The observed meta keys had no view count. `odysee_free.py` records that gap and does not invent one.
+
+
+## Live free-source audit, 2026-11-15
+
+omkarcloud/tiktok-scraper was cloned and its parser tests passed, 79 tests. A live video lookup returned play_count, like_count, comment_count, share_count, and MP4 play links. A live profile lookup returned follower_count. The wrapper is `tiktok_free.py`. It imports that checkout only when `TIKTOK_SCRAPER_HOME` points at it. It does not invent counts when the checkout is absent.
+
+Instaloader 4.16 profile fetch redirected to login and the web profile JSON returned HTTP 429. No follower count was observed. One public post shortcode returned a caption and an image URL. `instagram_free.py` is not created, because the profile capability in the blueprint was not verified and a post-only stub would overclaim it.
+
+`https://returnyoutubedislikeapi.com/votes?videoId=jNQXAC9IVRw` returned HTTP 200 JSON with likes and dislikes. `youtube_free.py` wraps that counts endpoint only.
+
+TikTok oEmbed returned HTTP 200 without title, author, cover, or duration. `open-api.tiktokapis.com` did not resolve. `tiktok_oembed.py` was not created.
+
+Reddit `.json` returned HTTP 403. `reddit_free.py` was not created. The existing social-fetch Reddit domain is unchanged because this audit did not re-test that library path.
+
+The published `scraperx` package is a generic SDK, not a platform client. `prezis/scraperx` was not run. `scraperx_free.py` was not created.
+
+The isolated audit could not import `social_fetch`. The parent environment does have it, and it already recognizes Pinterest and LinkedIn. EasyDown's live OpenAPI does not list LinkedIn, Pinterest, Rumble, Odysee, or Telegram.

@@ -45,6 +45,8 @@ BASE_SCHEMA = {
     "is_ad": None,
     "raw_platform_data": None,
     "credits_charged": 0,
+    "path_used": None,
+    "source_detail": None,
     "errors": [],
 }
 

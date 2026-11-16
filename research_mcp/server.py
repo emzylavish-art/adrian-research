@@ -66,6 +66,7 @@ def main() -> None:
 # repository was renamed to adrian-research. This block sits before the
 # unchanged `if __name__` guard so registration runs before mcp.run().
 from research_mcp.util import service as _service
+from research_mcp.router import route as _route
 
 
 @mcp.tool()
@@ -76,6 +77,13 @@ def get_post(
     download_media: bool = False,
 ) -> dict:
     """Look up one public post from any supported platform. Returns the same shape every time. Read errors before treating empty fields as real data. download_media writes a local job under the data directory and can take several minutes."""
+    # FREE-FIRST: LinkedIn, Pinterest, Rumble, Odysee, and a present TikTok
+    # scraper checkout are claimed in the router. YouTube likes and dislikes
+    # are merged by service.get_post when EASYDOWN_API_KEY is absent.
+    # Other URLs return None and keep the existing lookup.
+    routed = _route("get_post", url=url, include_transcript=include_transcript, include_comments=include_comments, download_media=download_media)
+    if routed is not None:
+        return routed
     return _service.get_post(url, include_transcript, include_comments, download_media)
 
 
@@ -88,6 +96,10 @@ def search_posts(query: str, platform: str | None = None, count: int = 10) -> li
 @mcp.tool()
 def get_profile(handle: str, platform: str) -> dict:
     """Get a public profile card. TikTok and Bluesky use Social Fetch REST when SOCIALFETCH_API_KEY is set. Other library platforms return a bounded account sample, not a full profile."""
+    # FREE-FIRST: a LinkedIn handle uses the guest HTML reader before any paid call.
+    routed = _route("get_profile", handle=handle, platform=platform)
+    if routed is not None:
+        return routed
     return _service.get_profile(handle, platform)
 
 
