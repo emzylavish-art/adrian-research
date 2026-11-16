@@ -403,11 +403,26 @@ def get_post(url: str, include_transcript: bool = False, include_comments: bool 
 
 
 def _merge_youtube_counts(url: str, partial: dict, errors: list) -> tuple[dict, list]:
-    from research_mcp.backends.youtube_free import get_counts
+    from research_mcp.backends.youtube_free import get_counts, get_metadata
 
+    metadata = get_metadata(url)
+    metadata_data = metadata.get("data") if isinstance(metadata.get("data"), dict) else {}
+    if partial.get("title") is None and isinstance(metadata_data.get("title"), str):
+        partial["title"] = metadata_data["title"]
+    author = partial.get("author") if isinstance(partial.get("author"), dict) else {}
+    if author.get("username") is None and isinstance(metadata_data.get("author"), str):
+        author["username"] = metadata_data["author"]
+        author["display_name"] = metadata_data["author"]
+    if author.get("profile_url") is None and isinstance(metadata_data.get("author_url"), str):
+        author["profile_url"] = metadata_data["author_url"]
+    partial["author"] = author
+    metrics = partial.get("metrics") if isinstance(partial.get("metrics"), dict) else {}
+    if metrics.get("views") is None and isinstance(metadata_data.get("view_count"), int):
+        metrics["views"] = metadata_data["view_count"]
+    partial["metrics"] = metrics
+    errors.extend(metadata.get("errors") or [])
     counted = get_counts(url)
     data = counted.get("data") if isinstance(counted.get("data"), dict) else {}
-    metrics = partial.get("metrics") if isinstance(partial.get("metrics"), dict) else {}
     if metrics.get("likes") is None and isinstance(data.get("likes"), int):
         metrics["likes"] = data["likes"]
     if isinstance(data.get("dislikes"), int):
@@ -415,16 +430,14 @@ def _merge_youtube_counts(url: str, partial: dict, errors: list) -> tuple[dict, 
     partial["metrics"] = metrics
     partial["path_used"] = "free"
     library_filled = bool(partial.get("title") or (partial.get("media") or {}).get("video_urls"))
-    partial["source_detail"] = (
-        "social-fetch-resource+returnyoutubedislike" if library_filled else "returnyoutubedislike"
-    )
+    partial["source_detail"] = "youtube-oembed-page+returnyoutubedislike"
     if not isinstance(partial.get("credits_charged"), int):
         partial["credits_charged"] = 0
     errors.extend(counted.get("errors") or [])
-    if not library_filled:
+    if not library_filled and not partial.get("title") and not author.get("username") and metrics.get("views") is None:
         errors.append({
             "error": "missing_field",
-            "detail": "returnyoutubedislike returned counts only; title, author, views, and media were not on that source",
+            "detail": "free YouTube sources returned counts only; title, author, views, and media were not available",
         })
     return partial, errors
 

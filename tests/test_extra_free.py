@@ -80,6 +80,19 @@ class ExtraFreeTests(unittest.TestCase):
         self.assertEqual(out["data"]["dislikes"], 1)
         self.assertEqual(out["credits_charged"], 0)
 
+    def test_youtube_metadata_maps_title_author_and_views(self):
+        oembed = {"title": "Clip", "author_name": "Ada", "author_url": "https://www.youtube.com/@ada"}
+        page = '"text":"12,345 views"'
+        with patch("research_mcp.backends.youtube_free.urllib.request.urlopen", side_effect=[
+            _Response(200, json.dumps(oembed), "https://www.youtube.com/oembed"),
+            _Response(200, page, "https://www.youtube.com/watch?v=jNQXAC9IVRw"),
+        ]):
+            out = youtube_free.get_metadata("https://www.youtube.com/watch?v=jNQXAC9IVRw")
+        self.assertEqual(out["data"]["title"], "Clip")
+        self.assertEqual(out["data"]["author"], "Ada")
+        self.assertEqual(out["data"]["view_count"], 12345)
+        self.assertEqual(out["credits_charged"], 0)
+
     def test_youtube_get_post_uses_counts_when_easydown_key_is_missing(self):
         empty = ({}, [{"error": "api_key_missing", "detail": "no key configured for https://api.easydown.org"}], 0)
         counts = {
@@ -92,10 +105,11 @@ class ExtraFreeTests(unittest.TestCase):
         with patch.dict(os.environ, {}, clear=False):
             os.environ.pop("EASYDOWN_API_KEY", None)
             with patch("research_mcp.util.service._fill", return_value=empty):
-                with patch("research_mcp.backends.youtube_free.get_counts", return_value=counts):
-                    out = get_post("https://www.youtube.com/watch?v=jNQXAC9IVRw")
+                with patch("research_mcp.backends.youtube_free.get_metadata", return_value={"data": {}, "errors": []}):
+                    with patch("research_mcp.backends.youtube_free.get_counts", return_value=counts):
+                        out = get_post("https://www.youtube.com/watch?v=jNQXAC9IVRw")
         self.assertEqual(out["path_used"], "free")
-        self.assertEqual(out["source_detail"], "returnyoutubedislike")
+        self.assertEqual(out["source_detail"], "youtube-oembed-page+returnyoutubedislike")
         self.assertEqual(out["metrics"]["likes"], 5)
         self.assertEqual(out["metrics"]["dislikes"], 1)
         self.assertEqual(out["credits_charged"], 0)
