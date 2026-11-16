@@ -9,7 +9,7 @@ Smoked 2026-11-15 with `SOCIALFETCH_API_KEY` and `EASYDOWN_API_KEY` unset. `cred
 | Rumble resource | `https://rumble.com/v1.html` | free | rumble-resource | `blocked` |
 | Odysee proxy | `lbry://@3ctech#0/Odysee#288` | free | odysee-proxy | `missing_field` view count |
 | TikTok scraper | `https://www.tiktok.com/@tiktok/video/7692114317151423775` | free | omkarcloud-tiktok | none |
-| YouTube counts | `https://www.youtube.com/watch?v=jNQXAC9IVRw` | free | returnyoutubedislike | `api_key_missing` for EasyDown, plus `missing_field` for the fields that source does not return |
+| YouTube free | `https://www.youtube.com/watch?v=jNQXAC9IVRw` | free | youtube-oembed-page+returnyoutubedislike | `api_key_missing` for EasyDown |
 
 The LinkedIn row is this smoke. An earlier call the same day, before LinkedIn answered 429, returned the name and left followers null. Followers stay null even on a successful guest parse.
 
@@ -19,17 +19,17 @@ The LinkedIn row is this smoke. An earlier call the same day, before LinkedIn an
 
 | Field | LinkedIn | Pinterest | Rumble | Odysee | TikTok | YouTube |
 | --- | --- | --- | --- | --- | --- | --- |
-| title | null | null | null | returned | null | null |
+| title | null | null | null | returned | null | returned |
 | description | null | blank space | null | returned | returned | null |
-| author.username | null | returned | null | returned | returned | null |
-| author.display_name | null | returned | null | returned | returned | null |
+| author.username | null | returned | null | returned | returned | returned |
+| author.display_name | null | returned | null | returned | returned | returned |
 | author.bio | null | null | null | null | returned | null |
 | author.followers | null | null | null | null | returned | null |
 | author.verified | null | null | null | null | returned | null |
 | author.avatar_url | null | null | null | null | returned | null |
-| author.profile_url | null | null | null | null | returned | null |
+| author.profile_url | null | null | null | null | returned | returned |
 | created_at | null | null | null | null | returned | null |
-| metrics.views | null | null | null | null | returned | null |
+| metrics.views | null | null | null | null | returned | returned |
 | metrics.likes | null | null | null | null | returned | returned |
 | metrics.dislikes | null | null | null | null | null | returned |
 | metrics.comments | null | null | null | null | returned | null |
@@ -52,7 +52,7 @@ The LinkedIn row is this smoke. An earlier call the same day, before LinkedIn an
 
 Observed TikTok values on that URL: views 563700, likes 19700, comments 3915, shares 1469, saves 1703, reposts 0, followers 96800000, created date `2026-10-02T16:52:37Z`, duration 65 seconds, width 720, height 1280, one play link. Title was null in the scraper payload, not only in the schema.
 
-YouTube values from `returnyoutubedislike`: likes 20139871, dislikes 452591. `get_post` uses those counts only when `EASYDOWN_API_KEY` is absent. A present key keeps the EasyDown lookup and does not call this module.
+YouTube free path, observed with `EASYDOWN_API_KEY` absent: title `Me at the zoo`, author `jawed`, profile `https://www.youtube.com/@jawed`, views 448669298, likes 20139871, dislikes 452591. `path_used` was `free`, `source_detail` was `youtube-oembed-page+returnyoutubedislike`, credits were 0. Title and author come from public YouTube oEmbed. Views come from the public watch page. Counts come from `returnyoutubedislike`. Created date, description, transcript, and media stayed null. A present EasyDown key keeps the paid lookup and does not call these free sources.
 
 ## Not mapped, not absent
 
